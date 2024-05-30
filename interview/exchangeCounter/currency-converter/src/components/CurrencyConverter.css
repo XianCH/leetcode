@@ -1,0 +1,20 @@
+.currency-converter {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.currency-converter input {
+  padding: 10px;
+  margin-right: 10px;
+}
+
+.currency-converter button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.currency-converter p {
+  margin-top: 20px;
+  font-size: 20px;
+}
