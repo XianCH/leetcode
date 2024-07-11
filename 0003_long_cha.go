@@ -17,3 +17,23 @@ func LongCharacter(s string) int {
 	}
 	return maxLength
 }
+
+func lengthOfLongestSubstring(s string) int {
+	start, maxLen := 0, 0
+	charMap := make(map[rune]int)
+	for end, char := range s {
+		if _, ok := charMap[char]; ok {
+			for s[start] != byte(char) {
+				delete(charMap, rune(s[start]))
+				start++
+			}
+			start++
+		} else {
+			charMap[char] = end
+			if end-start+1 > maxLen {
+				maxLen = end - start + 1
+			}
+		}
+	}
+	return maxLen
+}
