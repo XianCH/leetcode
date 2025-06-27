@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ "$1" = "-s" ] && [ "$2" = "system-serial-number" ]; then
+    echo "ARCH-SN-1234567890"
+else
+    /usr/bin/dmidecode.real "$@"
+fi
