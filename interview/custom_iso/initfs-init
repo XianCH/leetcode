@@ -1,4 +1,13 @@
 #!/bin/sh
+set -e
+
+echo ">>>> INIT: 启动中..."
+
+### 第 1 步：挂载必要系统目录
+mkdir -p /proc /sys /dev /new_root
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev
 
 echo ">>>> INIT: 开始系统认证..."
 
@@ -15,12 +24,37 @@ echo "身份 Hash: $HASH"
 AUTHORIZED_HASH="acbd1234deadbeef5678cafebabe112233445566778899aabbccddeeff001122"
 
 if [ "$HASH" != "$AUTHORIZED_HASH" ]; then
-  echo "认证失败！未授权的 SN+MAC 组合"
-  echo "启动已中断。"
+  echo "[!] 认证失败！未授权的 SN+MAC 组合"
   exec /bin/sh
 fi
 
-echo "认证通过，继续启动..."
-exec /sbin/init
+echo "[*] 认证通过，继续启动..."
 
-chmod +x "$INITFS_DIR/init"
+echo ">>>> INIT: 开始系统解密..."
+
+if [ ! -f /arch/root.img ]; then
+  echo "[!] /arch/root.img 不存在"
+  exec /bin/sh
+fi
+
+if [ ! -f /authorized/keyfile.bin ]; then
+  echo "[!] 密钥文件 /authorized/keyfile.bin 不存在"
+  exec /bin/sh
+fi
+
+cryptsetup luksOpen /arch/root.img luks-root --key-file /authorized/keyfile.bin || {
+  echo "[!] 解密失败"
+  exec /bin/sh
+}
+
+echo "[*] 挂载解密的根文件系统..."
+mount /dev/mapper/luks-root /new_root || {
+  echo "[!] 挂载失败"
+  exec /bin/sh
+}
+
+echo "[*] 切换根目录..."
+exec switch_root /new_root /sbin/init
+
+echo "[!] switch_root 失败"
+exec /bin/sh
